@@ -1,0 +1,46 @@
+# Hermes 默认配置
+# 目标：飞书作为默认入口，Hermes 根据任务类型在 Codex/GPT token 间做可调整路由。
+
+entrypoint:
+  default: feishu
+  enabled:
+    - feishu
+
+feishu:
+  # 从环境变量读取飞书应用配置，避免把密钥写入仓库。
+  app_id_env: FEISHU_APP_ID
+  app_secret_env: FEISHU_APP_SECRET
+  verification_token_env: FEISHU_VERIFICATION_TOKEN
+  encrypt_key_env: FEISHU_ENCRYPT_KEY
+
+hermes:
+  token:
+    # auto 表示默认自动选择；也可以改成 codex 或 gpt 固定入口。
+    mode: auto
+    default_provider: codex
+    providers:
+      codex:
+        token_env: CODEX_TOKEN
+        base_url_env: CODEX_BASE_URL
+      gpt:
+        token_env: GPT_TOKEN
+
+  routing:
+    # 后续可按实际效果调整规则顺序；第一条命中规则优先生效。
+    rules:
+      - name: code_tasks
+        provider: codex
+        match_keywords:
+          - 代码
+          - 编程
+          - repo
+          - diff
+          - PR
+      - name: general_chat
+        provider: gpt
+        match_keywords:
+          - 文案
+          - 总结
+          - 翻译
+          - 对话
+    fallback_provider: codex
